@@ -1,149 +1,105 @@
+import os
 import sys
-from pathlib import Path
 
-# Configuração do caminho para importar o módulo da pasta kit
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-sys.path.append(str(BASE_DIR))
-
-try:
-    from kit import black_box
-except ImportError:
-    print("Erro: Não foi possível importar o módulo 'black_box' da pasta 'kit'.")
-    print("Certifique-se de que a estrutura do repositório se mantém intacta.")
-    sys.exit(1)
+GROUP_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(GROUP_DIR, "..", "..", "kit"))
+from black_box import *
 
 
-# --- Funções Auxiliares Manuais (sem sum, max, min) ---
+def ask_folder():
+    """
+    Ask for the folder name until the user enters a valid one
+    """
+    show_folders()
+    print()
 
-def calcular_total(lista_valores):
-    """Calcula a soma dos elementos de uma lista manualmente."""
-    total = 0
-    for valor in lista_valores:
-        total += valor
-    return total
+    folder = input("Enter the name of the desired folder: ").strip().lower()
+    while not folder_exists(folder):
+        print("❌ Folder not found! Check the name you entered and try again.\n")
+        show_folders()
+        folder = input("Enter the name of the desired folder: ").strip().lower()
 
-
-def encontrar_maior(lista_valores):
-    """Determina o valor máximo de uma lista manualmente."""
-    if not lista_valores:
-        return 0
-    maior = lista_valores[0]
-    for valor in lista_valores:
-        if valor > maior:
-            maior = valor
-    return maior
+    return folder
 
 
-def contar_ocorrencias(lista_itens):
-    """Conta a frequência de cada elemento devolvendo duas listas: itens e contagens."""
-    itens_unicos = []
-    contagens = []
-    for item in lista_itens:
-        if item in itens_unicos:
-            indice = itens_unicos.index(item)
-            contagens[indice] += 1
-        else:
-            itens_unicos.append(item)
-            contagens.append(1)
-    return itens_unicos, contagens
+def ask_photo_number(folder):
+    """
+    Ask for the photo number and ensure it is between 1 and the total number of photos in the folder.
+    """
+    total = total_photos(folder)
+    num  = int(input(f"Enter the photo number (1 to {total}): "))
 
+    while num < 1 or num > total:
+        print(f"Number out of range! Choose a value between 1 and {total}.")
 
-# --- Operações do Sistema ---
+        num  = int(input(f"Enter the photo number (1 to {total}): "))
 
-def processar_imagem():
-    """Solicita o caminho de uma imagem e executa a deteção."""
-    caminho = input("\nIntroduza o caminho relativo ou absoluto da imagem: ").strip()
-    
-    if not caminho:
-        print("Aviso: Caminho inválido.")
-        return None, []
+    return num
 
-    ficheiro = Path(caminho)
-    if not ficheiro.is_file():
-        print(f"Erro: O ficheiro '{caminho}' não foi encontrado.")
-        return None, []
-
-    print("A processar imagem com a caixa-preta...")
-    try:
-        # Chamada da função de deteção fornecida no kit
-        detecoes = black_box.detect(str(ficheiro))
-        print(f"Sucesso: {len(detecoes)} objeto(s) detetado(s).")
-        return str(ficheiro), detecoes
-    except Exception as e:
-        print(f"Ocorreu um erro durante o processamento: {e}")
-        return None, []
-
-
-def exibir_relatorio(caminho_imagem, detecoes):
-    """Apresenta a listagem detalhada e o gráfico de barras em modo texto."""
-    if not detecoes:
-        print("\nNenhum objeto detetado ou nenhuma imagem processada até ao momento.")
-        return
-
-    print("\n" + "=" * 50)
-    print(f"RELATÓRIO DE CENSO VISUAL: {Path(caminho_imagem).name}")
-    print("=" * 50)
-
-    classes, contagens = contar_ocorrencias(detecoes)
-    total_objetos = calcular_total(contagens)
-    maior_contagem = encontrar_maior(contagens)
-
-    print(f"Total de objetos identificados: {total_objetos}\n")
-    print(f"{'Classe':<20} | {'Qtd':<5} | Distribuição")
-    print("-" * 50)
-
-    # Definição da escala do gráfico (comprimento máximo da barra: 25 carateres)
-    largura_maxima = 25
-    for i in range(len(classes)):
-        classe = classes[i]
-        qtd = contagens[i]
-        
-        if maior_contagem > 0:
-            tamanho_barra = int((qtd / maior_contagem) * largura_maxima)
-        else:
-            tamanho_barra = 0
-            
-        barra = "█" * tamanho_barra
-        print(f"{classe:<20} | {qtd:<5} | {barra}")
-
-    print("=" * 50)
-
-
-# --- Menu Principal ---
-
-def menu():
-    caminho_atual = None
-    detecoes_atuais = []
+def main():
+    min_confidence_level = 0.5
 
     while True:
-        print("\n" + "#" * 35)
-        print("      PHOTOCENSUS - GRUPO 03")
-        print("#" * 35)
-        print("1. Processar nova imagem")
-        print("2. Ver relatório e gráfico de barras")
-        print("3. Limpar dados em memória")
-        print("0. Sair")
-        print("#" * 35)
+        print("\n" + "=" * 40)
+        print(f"{"PHOTOCENSUS - MENU":^40} Grupo 03")
+        print("=" * 40)
+        print(f"Current minimun confidence: {min_confidence_level:.2f}")
+        print("-" * 40)
+        # Configurar confiança mínima
+        print("[ 1 ] - Change minimum confidence")
+        # Analisar foto
+        print("[ 2 ] - Analyze a photo")
+        # Contar uma classe na foto
+        print("[ 3 ] - Count class in a photo")
+        # Relatório da pasta
+        print("[ 4 ] - Folder report")
+        # Foto mais cheia e mais vazia
+        print("[ 5 ] - Most and least populated photo")
+        # Procurar uma classe na pasta
+        print("[ 6 ] - Search class in folder")
+        # Gráfico de barras em texto
+        print("[ 7 ] - Bar char (text)")
+        # Encerrar Programa
+        print("[ 0 ] - Exit")
+        print("=" * 40)
 
-        opcao = input("Selecione uma opção: ").strip()
+        option = input("Choose an option: ").strip()
 
-        if opcao == "1":
-            caminho, detecoes = processar_imagem()
-            if caminho is not None:
-                caminho_atual = caminho
-                detecoes_atuais = detecoes
-        elif opcao == "2":
-            exibir_relatorio(caminho_atual, detecoes_atuais)
-        elif opcao == "3":
-            caminho_atual = None
-            detecoes_atuais = []
-            print("Memória limpa com sucesso.")
-        elif opcao == "0":
-            print("\nA encerrar o PhotoCensus. Até breve!")
+        if option == "1":
+            # Configurar a confiança mínima (validada entre 0 e 1)
+            new_conf = float(input("Enter new confidence (0.0 to 1.0): ").strip())
+
+            while new_conf < 0.0 or new_conf > 1.0:
+                print("❌ Invalid confidence! Value must be between 0.0 and 1.0")
+                new_conf = float(input("Enter new confidence (0.0 to 1.0): ").strip())
+
+            min_confidence_level = new_conf
+            print(f"✅ Minimum confidence update to {min_confidence_level:.2f}")
+
+
+        elif option == "2":
+
+            folder = ask_folder()
+            num = ask_photo_number(folder)
+            photo = photo_name(folder, num)
+
+            total_objs = count_objects(photo, min_confidence_level)
+            main_obj = main_object(photo)
+            highest_conf = max_confidence(photo)
+
+            print(f"\n--- Photo Analysis ---")
+            print(f"Path: {photo}")
+            print(f"Total objects: {total_objs}")
+            if main_obj:
+                print(f"Main object: {main_obj}")
+            print(f"Highest confidence: {highest_conf * 100:.1f}%")
+
+        elif option == "0":
+            print("Exiting system. Goodbye!")
             break
+        
         else:
-            print("Opção inválida. Tente novamente.")
-
+            print("❌ Invalid option! Please try again.")
 
 if __name__ == "__main__":
-    menu()
+    main()

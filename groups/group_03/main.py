@@ -125,3 +125,44 @@ def main():
 
 if __name__ == "__main__":
     main()
+    print("=" * 50)
+
+
+# --- Menu Principal ---
+
+def menu():
+    caminho_atual = None
+    detecoes_atuais = []
+
+    while True:
+        print("\n" + "#" * 35)
+        print("      PHOTOCENSUS - GRUPO 03")
+        print("#" * 35)
+        print("1. Processar nova imagem")
+        print("2. Ver relatório e gráfico de barras")
+        print("3. Limpar dados em memória")
+        print("0. Sair")
+        print("#" * 35)
+
+        opcao = input("Selecione uma opção: ").strip()
+
+        if opcao == "1":
+            caminho, detecoes = processar_imagem()
+            if caminho is not None:
+                caminho_atual = caminho
+                detecoes_atuais = detecoes
+        elif opcao == "2":
+            exibir_relatorio(caminho_atual, detecoes_atuais)
+        elif opcao == "3":
+            caminho_atual = None
+            detecoes_atuais = []
+            print("Memória limpa com sucesso.")
+        elif opcao == "0":
+            print("\nA encerrar o PhotoCensus. Até breve!")
+            break
+        else:
+            print("Opção inválida. Tente novamente.")
+
+
+if __name__ == "__main__":
+    menu() 

@@ -94,6 +94,28 @@ def main():
                 print(f"Main object: {main_obj}")
             print(f"Highest confidence: {highest_conf * 100:.1f}%")
 
+
+        elif option == "3":
+
+            folder = ask_folder()
+            num = ask_photo_number(folder)
+            photo = photo_name(folder, num)
+
+            print()
+            show_classes()
+            class_name = input("Enter class name (e.g., car, person): ").strip().lower()
+
+            while class_name == "":
+                print("❌ Class name cannot be empty!")
+                class_name = input("Enter class name (e.g., car, person): ").strip().lower()
+
+            total_class = count_class(photo, class_name, min_confidence_level)
+
+            print("\n--- Class Count ---")
+            print(f"Photo: {photo}")
+            print(f"Class: '{class_name}': {total_class} object(s) found (min_confidence: {min_confidence_level:.2f})")
+
+
         elif option == "0":
             print("Exiting system. Goodbye!")
             break
